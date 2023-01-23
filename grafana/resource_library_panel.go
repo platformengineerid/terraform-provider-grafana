@@ -45,7 +45,7 @@ Manages Grafana library panels.
 				Description: "The numeric ID of the library panel computed by Grafana.",
 			},
 			"org_id": {
-				Type:        schema.TypeInt,
+				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The numeric ID of the library panel computed by Grafana.",
 			},
