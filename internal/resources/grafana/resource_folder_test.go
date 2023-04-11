@@ -99,6 +99,33 @@ func TestAccFolder_basic(t *testing.T) {
 	})
 }
 
+func TestAccFolder_forceDelete(t *testing.T) {
+	testutils.CheckOSSTestsEnabled(t)
+	testutils.CheckOSSTestsSemver(t, ">=9.3.0")
+
+	var folder gapi.Folder
+	var name = acctest.RandomWithPrefix("force-delete-folder")
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProviderFactories: testutils.ProviderFactories,
+		CheckDestroy:      testAccFolderCheckDestroy(&folder),
+		Steps: []resource.TestStep{
+			{
+				Config: testutils.TestAccExampleWithReplace(t, "resources/grafana_folder/resource.tf", map[string]string{
+					"Terraform Test Folder": name,
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testAccFolderCheckExists("grafana_folder.test_folder", &folder),
+					resource.TestMatchResourceAttr("grafana_folder.test_folder", "id", common.IDRegexp),
+					resource.TestMatchResourceAttr("grafana_folder.test_folder", "uid", common.UIDRegexp),
+					resource.TestCheckResourceAttr("grafana_folder.test_folder", "title", name),
+				),
+			},
+		},
+	})
+
+}
+
 // This is a bug in Grafana, not the provider. It was fixed in 9.2.7+ and 9.3.0+, this test will check for regressions
 func TestAccFolder_createFromDifferentRoles(t *testing.T) {
 	testutils.CheckOSSTestsEnabled(t)
