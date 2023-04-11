@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -66,6 +67,12 @@ func ResourceFolder() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The full URL of the folder.",
+			},
+			"force_delete_alert_rules": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Force delete alert rules when deleting a folder. By default, deletion of a folder will fail if it contains alert rules.",
 			},
 		},
 	}
@@ -138,7 +145,12 @@ func ReadFolder(ctx context.Context, d *schema.ResourceData, meta interface{}) d
 func DeleteFolder(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*common.Client).GrafanaAPI
 
-	if err := client.DeleteFolder(d.Get("uid").(string)); err != nil {
+	params := []url.Values{}
+	if d.Get("force_delete_alert_rules").(bool) {
+		params = append(params, gapi.ForceDeleteFolderRules())
+	}
+
+	if err := client.DeleteFolder(d.Get("uid").(string), params...); err != nil {
 		return diag.FromErr(err)
 	}
 
